@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuizApp — Uji Pengetahuanmu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0b0c10;
+      --surface: #13141a;
+      --card: #1a1c25;
+      --border: #2a2d3a;
+      --accent: #6ee7b7;
+      --accent2: #818cf8;
+      --danger: #f87171;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --radius: 16px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    /* Animated background blobs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.15;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 400px; height: 400px;
+      background: var(--accent);
+      top: -100px; left: -100px;
+      animation: blobMove1 12s ease-in-out infinite alternate;
+    }
+    body::after {
+      width: 350px; height: 350px;
+      background: var(--accent2);
+      bottom: -80px; right: -80px;
+      animation: blobMove2 10s ease-in-out infinite alternate;
+    }
+    @keyframes blobMove1 { from { transform: translate(0,0); } to { transform: translate(60px, 40px); } }
+    @keyframes blobMove2 { from { transform: translate(0,0); } to { transform: translate(-40px, -60px); } }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 680px;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .header .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 20px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .header .logo span { font-size: 18px; }
+    .header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--text);
+    }
+    .header h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .header p {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 300;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+      animation: fadeUp 0.4s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── PROGRESS ── */
+    .progress-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .progress-label {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .progress-label strong { color: var(--text); }
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--surface);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 28px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 999px;
+      transition: width 0.5s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ── QUESTION ── */
+    .question-number {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent2);
+      margin-bottom: 10px;
+    }
+    .question-text {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(17px, 3vw, 22px);
+      font-weight: 700;
+      line-height: 1.4;
+      color: var(--text);
+      margin-bottom: 28px;
+    }
+
+    /* ── OPTIONS ── */
+    .options {
+      display: grid;
+      gap: 12px;
+    }
+    .option-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+      cursor: pointer;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 400;
+      text-align: left;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .option-btn:hover:not(:disabled) {
+      border-color: var(--accent2);
+      background: #1e2130;
+      transform: translateX(4px);
+    }
+    .option-btn .opt-letter {
+      min-width: 30px; height: 30px;
+      border-radius: 8px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px; font-weight: 700;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+    .option-btn.correct {
+      border-color: var(--accent);
+      background: rgba(110,231,183,0.08);
+    }
+    .option-btn.correct .opt-letter {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0b0c10;
+    }
+    .option-btn.wrong {
+      border-color: var(--danger);
+      background: rgba(248,113,113,0.08);
+    }
+    .option-btn.wrong .opt-letter {
+      background: var(--danger);
+      border-color: var(--danger);
+      color: #fff;
+    }
+    .option-btn:disabled { cursor: default; }
+    .option-btn:disabled:not(.correct):not(.wrong) { opacity: 0.45; }
+
+    /* ── FEEDBACK ── */
+    .feedback {
+      display: none;
+      margin-top: 20px;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      align-items: center;
+      gap: 10px;
+    }
+    .feedback.show { display: flex; }
+    .feedback.correct-fb { background: rgba(110,231,183,0.1); color: var(--accent); }
+    .feedback.wrong-fb   { background: rgba(248,113,113,0.1); color: var(--danger); }
+
+    /* ── NAVIGATION ── */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 28px;
+      gap: 12px;
+    }
+    .btn {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.04em;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(0); }
+    .btn-ghost {
+      background: var(--surface);
+      color: var(--muted);
+      border: 1.5px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #0b0c10;
+    }
+    .btn-primary:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── SCORE SCREEN ── */
+    #score-screen { display: none; text-align: center; }
+    #score-screen.show { display: block; }
+    .score-circle {
+      width: 150px; height: 150px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) var(--pct), var(--surface) 0);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 28px;
+      position: relative;
+    }
+    .score-circle::after {
+      content: '';
+      position: absolute;
+      inset: 10px;
+      border-radius: 50%;
+      background: var(--card);
+    }
+    .score-number {
+      position: relative; z-index: 1;
+      font-family: 'Syne', sans-serif;
+      font-size: 36px; font-weight: 800;
+      color: var(--accent);
+    }
+    .score-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px; font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .score-subtitle { color: var(--muted); font-size: 15px; margin-bottom: 32px; }
+
+    .score-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .stat-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 10px;
+    }
+    .stat-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px; font-weight: 800;
+    }
+    .stat-val.green { color: var(--accent); }
+    .stat-val.red   { color: var(--danger); }
+    .stat-val.blue  { color: var(--accent2); }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── INTRO ── */
+    #intro-screen { text-align: center; }
+    #intro-screen .big-icon { font-size: 64px; margin-bottom: 20px; }
+    #intro-screen h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px; font-weight: 800; margin-bottom: 10px;
+    }
+    #intro-screen p { color: var(--muted); font-size: 15px; margin-bottom: 32px; line-height: 1.6; }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+    .info-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .info-item strong { display: block; font-size: 20px; color: var(--text); margin-bottom: 2px; font-family: 'Syne', sans-serif; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 500px) {
+      .card { padding: 24px 20px; }
+      .score-stats { grid-template-columns: repeat(3, 1fr); }
+      .info-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo"><span>🧠</span> QuizApp</div>
+    <h1>Uji <em>Pengetahuan</em><br>Coding-mu</h1>
+    <p>HTML · CSS · JavaScript · Git</p>
+  </div>
+
+  <!-- CARD -->
+  <div class="card">
+
+    <!-- INTRO SCREEN -->
+    <div id="intro-screen">
+      <div class="big-icon">⚡</div>
+      <h2>Siap untuk mulai?</h2>
+      <p>Quiz ini terdiri dari 10 soal pilihan ganda seputar dasar-dasar web development. Pilih jawaban terbaikmu!</p>
+      <div class="info-grid">
+        <div class="info-item"><strong>10</strong>Soal</div>
+        <div class="info-item"><strong>4</strong>Pilihan Jawaban</div>
+        <div class="info-item"><strong>HTML/CSS</strong>Topik 1</div>
+        <div class="info-item"><strong>JS & Git</strong>Topik 2</div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:16px;" onclick="startQuiz()">Mulai Quiz →</button>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div id="quiz-screen" style="display:none;">
+      <div class="progress-row">
+        <span class="progress-label">Soal <strong id="q-num">1</strong> dari <strong id="q-total">10</strong></span>
+        <span class="progress-label" id="score-live" style="color:var(--accent);">Skor: 0</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+
+      <div class="question-number" id="q-label">Pertanyaan 01</div>
+      <div class="question-text" id="q-text"></div>
+      <div class="options" id="options-container"></div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="nav">
+        <button class="btn btn-ghost" id="prev-btn" onclick="prevQuestion()">← Sebelumnya</button>
+        <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" disabled>Selanjutnya →</button>
+      </div>
+    </div>
+
+    <!-- SCORE SCREEN -->
+    <div id="score-screen">
+      <div class="score-circle" id="score-circle">
+        <div class="score-number" id="score-pct">0%</div>
+      </div>
+      <div class="score-title" id="score-title">Luar Biasa!</div>
+      <div class="score-subtitle" id="score-subtitle">Kamu menguasai materi ini dengan baik.</div>
+      <div class="score-stats">
+        <div class="stat-box"><div class="stat-val green" id="stat-correct">0</div><div class="stat-label">✅ Benar</div></div>
+        <div class="stat-box"><div class="stat-val red" id="stat-wrong">0</div><div class="stat-label">❌ Salah</div></div>
+        <div class="stat-box"><div class="stat-val blue" id="stat-total">10</div><div class="stat-label">📋 Total</div></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;padding:16px;font-size:16px;" onclick="restartQuiz()">🔁 Ulangi Quiz</button>
+    </div>
+
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script>
+  let currentIndex = 0;
+  let score = 0;
+  let answered = [];
+
+  function startQuiz() {
+    currentIndex = 0;
+    score = 0;
+    answered = new Array(questions.length).fill(null);
+    document.getElementById('intro-screen').style.display = 'none';
+    document.getElementById('quiz-screen').style.display = 'block';
+    document.getElementById('q-total').textContent = questions.length;
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const q = questions[currentIndex];
+    const total = questions.length;
+    const pct = ((currentIndex) / total) * 100;
+
+    document.getElementById('q-num').textContent = currentIndex + 1;
+    document.getElementById('q-label').textContent = `Pertanyaan ${String(currentIndex + 1).padStart(2, '0')}`;
+    document.getElementById('q-text').textContent = q.question;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('score-live').textContent = `Skor: ${score}`;
+    document.getElementById('prev-btn').disabled = currentIndex === 0;
+
+    const container = document.getElementById('options-container');
+    container.innerHTML = '';
+    const letters = ['A', 'B', 'C', 'D'];
+
+    q.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.innerHTML = `<span class="opt-letter">${letters[i]}</span>${opt}`;
+      btn.onclick = () => selectAnswer(i);
+      container.appendChild(btn);
+    });
+
+    // Restore answered state if navigating back
+    const savedAnswer = answered[currentIndex];
+    const fb = document.getElementById('feedback');
+    const nextBtn = document.getElementById('next-btn');
+    fb.className = 'feedback';
+    fb.innerHTML = '';
+    nextBtn.disabled = true;
+
+    if (savedAnswer !== null) {
+      const btns = container.querySelectorAll('.option-btn');
+      btns.forEach(b => b.disabled = true);
+      const isCorrect = savedAnswer === q.answer;
+      btns[savedAnswer].classList.add(isCorrect ? 'correct' : 'wrong');
+      if (!isCorrect) btns[q.answer].classList.add('correct');
+      showFeedback(isCorrect, q.options[q.answer]);
+      nextBtn.disabled = false;
+    }
+
+    nextBtn.textContent = currentIndex === questions.length - 1 ? 'Lihat Hasil 🎯' : 'Selanjutnya →';
+  }
+
+  function selectAnswer(index) {
+    if (answered[currentIndex] !== null) return;
+    const q = questions[currentIndex];
+    answered[currentIndex] = index;
+
+    const btns = document.querySelectorAll('.option-btn');
+    btns.forEach(b => b.disabled = true);
+
+    const isCorrect = index === q.answer;
+    btns[index].classList.add(isCorrect ? 'correct' : 'wrong');
+    if (!isCorrect) btns[q.answer].classList.add('correct');
+
+    if (isCorrect) score++;
+    document.getElementById('score-live').textContent = `Skor: ${score}`;
+    showFeedback(isCorrect, q.options[q.answer]);
+    document.getElementById('next-btn').disabled = false;
+  }
+
+  function showFeedback(isCorrect, correctAnswer) {
+    const fb = document.getElementById('feedback');
+    if (isCorrect) {
+      fb.className = 'feedback correct-fb show';
+      fb.innerHTML = '✅ <span>Jawaban benar! Kerja bagus!</span>';
+    } else {
+      fb.className = 'feedback wrong-fb show';
+      fb.innerHTML = `❌ <span>Kurang tepat. Jawaban yang benar: <strong>${correctAnswer}</strong></span>`;
+    }
+  }
+
+  function nextQuestion() {
+    if (currentIndex < questions.length - 1) {
+      currentIndex++;
+      renderQuestion();
+    } else {
+      showScore();
+    }
+  }
+
+  function prevQuestion() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      renderQuestion();
+    }
+  }
+
+  function showScore() {
+    document.getElementById('quiz-screen').style.display = 'none';
+    const screen = document.getElementById('score-screen');
+    screen.classList.add('show');
+
+    const pct = Math.round((score / questions.length) * 100);
+    const wrong = questions.length - score;
+
+    document.getElementById('score-pct').textContent = pct + '%';
+    document.getElementById('stat-correct').textContent = score;
+    document.getElementById('stat-wrong').textContent = wrong;
+    document.getElementById('stat-total').textContent = questions.length;
+
+    // Conic gradient
+    document.getElementById('score-circle').style.setProperty('--pct', pct + '%');
+
+    let title, subtitle;
+    if (pct === 100)      { title = '🏆 Sempurna!';       subtitle = 'Kamu mendapat nilai tertinggi! Luar biasa!'; }
+    else if (pct >= 80)   { title = '🎉 Luar Biasa!';     subtitle = 'Penguasaan materimu sangat baik!'; }
+    else if (pct >= 60)   { title = '👍 Cukup Baik!';     subtitle = 'Masih ada ruang untuk berkembang!'; }
+    else if (pct >= 40)   { title = '📚 Terus Belajar!';  subtitle = 'Pelajari lagi materinya dan coba lagi!'; }
+    else                  { title = '💪 Jangan Menyerah!'; subtitle = 'Review materi dan kamu pasti bisa lebih baik!'; }
+
+    document.getElementById('score-title').textContent = title;
+    document.getElementById('score-subtitle').textContent = subtitle;
+  }
+
+  function restartQuiz() {
+    document.getElementById('score-screen').classList.remove('show');
+    startQuiz();
+  }
+</script>
+</body>
+</html>
