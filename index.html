@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kuis Interaktif</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0f;
+      --surface: #18181c;
+      --surface2: #222228;
+      --border: rgba(255,255,255,0.09);
+      --border2: rgba(255,255,255,0.18);
+      --green: #6ee7b7;
+      --green2: #34d399;
+      --red: #f87171;
+      --text: #f0f0f2;
+      --text2: #9090a0;
+      --text3: #505060;
+      --r: 14px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    .screen {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .screen.active { display: flex; }
+
+    /* LANDING */
+    #landing { text-align: center; }
+
+    .badge {
+      display: inline-block;
+      background: rgba(110,231,183,0.12);
+      border: 1px solid rgba(110,231,183,0.25);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 99px;
+      margin-bottom: 1.5rem;
+    }
+
+    .landing-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.8rem, 10vw, 5.5rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .landing-title span { color: var(--green); }
+
+    .landing-desc {
+      font-size: 1rem;
+      color: var(--text2);
+      max-width: 420px;
+      line-height: 1.7;
+      margin: 0 auto 2rem;
+    }
+
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .pill strong { color: var(--text); }
+
+    .btn-primary {
+      background: var(--green);
+      color: #052515;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 14px 40px;
+      border-radius: var(--r);
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-2px); }
+    .btn-primary:active { transform: scale(0.97); }
+
+    /* QUIZ */
+    #quiz { justify-content: flex-start; padding-top: 2.5rem; }
+
+    .quiz-wrap { width: 100%; max-width: 580px; }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .q-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .timer {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 14px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      min-width: 52px;
+      text-align: center;
+    }
+
+    .timer.urgent {
+      background: rgba(248,113,113,0.1);
+      border-color: rgba(248,113,113,0.3);
+      color: var(--red);
+    }
+
+    .prog-track {
+      height: 3px;
+      background: var(--surface2);
+      border-radius: 99px;
+      margin-bottom: 1.5rem;
+    }
+
+    .prog-fill {
+      height: 3px;
+      background: var(--green);
+      border-radius: 99px;
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+
+    .q-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .q-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      line-height: 1.5;
+      color: var(--text);
+      min-height: 54px;
+    }
+
+    .opts { display: flex; flex-direction: column; gap: 9px; margin-bottom: 1rem; }
+
+    .opt {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 13px 16px;
+      color: var(--text2);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: background 0.12s, border-color 0.12s, color 0.12s, transform 0.08s;
+    }
+
+    .opt-letter {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px; font-weight: 700;
+      color: var(--text3);
+      flex-shrink: 0;
+    }
+
+    .opt:hover:not(:disabled) { background: var(--surface2); border-color: var(--border2); color: var(--text); transform: translateX(3px); }
+    .opt:disabled { cursor: default; }
+    .opt.correct { background: rgba(52,211,153,0.1); border-color: rgba(52,211,153,0.4); color: var(--green); }
+    .opt.correct .opt-letter { background: var(--green2); border-color: var(--green2); color: #052515; }
+    .opt.wrong { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.35); color: var(--red); }
+    .opt.wrong .opt-letter { background: var(--red); border-color: var(--red); color: #1a0505; }
+    .opt.reveal { background: rgba(52,211,153,0.07); border-color: rgba(52,211,153,0.25); color: var(--green); }
+
+    .feedback {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+      min-height: 44px;
+    }
+
+    .feedback.correct { border-color: rgba(52,211,153,0.3); color: var(--green); }
+    .feedback.wrong { border-color: rgba(248,113,113,0.3); color: var(--red); }
+
+    .btn-next {
+      display: none;
+      width: 100%;
+      margin-top: 10px;
+      padding: 14px;
+      background: var(--green);
+      color: #052515;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      border: none;
+      border-radius: var(--r);
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .btn-next:hover { opacity: 0.85; }
+
+    /* SCORE */
+    #score { text-align: center; }
+
+    .score-ring {
+      width: 136px; height: 136px;
+      border-radius: 50%;
+      border: 3px solid var(--green);
+      background: rgba(110,231,183,0.07);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      margin: 0 auto 2rem;
+    }
+
+    .score-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 3rem; font-weight: 800;
+      color: var(--green); line-height: 1;
+    }
+
+    .score-denom { font-size: 12px; color: var(--text3); margin-top: 3px; }
+
+    .score-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem; font-weight: 800;
+      color: var(--text); margin-bottom: 0.5rem;
+    }
+
+    .score-sub { font-size: 1rem; color: var(--text2); margin-bottom: 2rem; line-height: 1.6; max-width: 380px; }
+
+    .stat-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 1rem 1.5rem;
+      min-width: 100px;
+    }
+
+    .stat-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem; font-weight: 800;
+      color: var(--text);
+    }
+
+    .stat-lbl { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border2);
+      color: var(--text2);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      padding: 13px 36px;
+      border-radius: var(--r);
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn-secondary:hover { border-color: var(--green); color: var(--green); }
+  </style>
+</head>
+<body>
+
+  <!-- LANDING -->
+  <div class="screen active" id="landing">
+    <div class="badge">✦ Tugas Praktik 06</div>
+    <h1 class="landing-title">Kuis<br><span>Interaktif</span></h1>
+    <p class="landing-desc">Uji pengetahuanmu dengan 10 soal pilihan ganda seputar Bahasa Indonesia, Pengetahuan Umum, dan Teknologi.</p>
+    <div class="pills">
+      <div class="pill"><strong>10</strong> Soal</div>
+      <div class="pill"><strong>15s</strong> Per Soal</div>
+      <div class="pill"><strong>3</strong> Kategori</div>
+      <div class="pill">Soal <strong>Acak</strong></div>
+    </div>
+    <button class="btn-primary" onclick="startQuiz()">Mulai Kuis &rarr;</button>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="quiz">
+    <div class="quiz-wrap">
+      <div class="topbar">
+        <span class="q-label" id="qlabel">Soal 1 / 10</span>
+        <div class="timer" id="timer">15s</div>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="prog"></div></div>
+      <div class="q-card"><div class="q-text" id="qtext"></div></div>
+      <div class="opts" id="opts"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="btn-next" id="btn-next" onclick="nextQ()">Lanjut &rarr;</button>
+    </div>
+  </div>
+
+  <!-- SCORE -->
+  <div class="screen" id="score">
+    <div class="score-ring">
+      <div class="score-num" id="snum">0</div>
+      <div class="score-denom" id="sdenom">dari 10</div>
+    </div>
+    <div class="score-title" id="stitle"></div>
+    <div class="score-sub" id="ssub"></div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-val" id="s-benar" style="color:var(--green)">0</div><div class="stat-lbl">Benar</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-salah" style="color:var(--red)">0</div><div class="stat-lbl">Salah</div></div>
+      <div class="stat-card"><div class="stat-val" id="s-pct">0%</div><div class="stat-lbl">Nilai</div></div>
+    </div>
+    <button class="btn-secondary" onclick="startQuiz()">&#8635; Ulangi Kuis</button>
+  </div>
+
+  <script>
+    var QS = [
+      { q:"Apa ibu kota negara Jepang?", opts:["Seoul","Beijing","Tokyo","Bangkok"], ans:2, info:"Tokyo adalah ibu kota sekaligus kota terbesar di Jepang." },
+      { q:"Bahasa pemrograman apa yang terkenal dengan filosofi 'readability counts'?", opts:["Java","Python","Ruby","Swift"], ans:1, info:"Python sangat menekankan keterbacaan kode sebagai prinsip utamanya." },
+      { q:"Siapa pengarang novel 'Laskar Pelangi'?", opts:["Pramoedya Ananta Toer","Habiburrahman El Shirazy","Andrea Hirata","Dee Lestari"], ans:2, info:"Andrea Hirata menulis Laskar Pelangi yang terbit tahun 2005." },
+      { q:"Planet terbesar di tata surya kita adalah?", opts:["Saturnus","Uranus","Neptunus","Jupiter"], ans:3, info:"Jupiter adalah planet terbesar, sekitar 1.300 kali volume Bumi." },
+      { q:"HTML adalah singkatan dari?", opts:["Hyper Text Markup Language","High Text Machine Language","Hyper Transfer Markup Layer","Home Tool Markup Language"], ans:0, info:"HTML = HyperText Markup Language, bahasa dasar setiap halaman web." },
+      { q:"Mata uang resmi Korea Selatan adalah?", opts:["Yuan","Yen","Won","Ringgit"], ans:2, info:"Won Korea adalah mata uang resmi Republik Korea." },
+      { q:"Fungsi tag <a> dalam HTML adalah untuk?", opts:["Menampilkan gambar","Membuat tautan/link","Membuat tabel","Membuat heading"], ans:1, info:"Tag <a> (anchor) digunakan untuk membuat hyperlink di web." },
+      { q:"Berapa jumlah provinsi di Indonesia saat ini?", opts:["34","37","38","40"], ans:2, info:"Indonesia memiliki 38 provinsi setelah pemekaran wilayah Papua tahun 2022." },
+      { q:"Siapa yang mematenkan telepon pertama kali?", opts:["Thomas Edison","Nikola Tesla","Alexander Graham Bell","Albert Einstein"], ans:2, info:"Alexander Graham Bell mematenkan telepon pada 7 Maret 1876." },
+      { q:"CSS dalam web development adalah singkatan dari?", opts:["Cascading Style Sheets","Computer Style System","Creative Style Syntax","Colorful Style Sheets"], ans:0, info:"CSS = Cascading Style Sheets, mengatur tampilan dan gaya halaman web." }
+    ];
+
+    var LETTERS = ['A','B','C','D'];
+    var cur=0, score=0, wrong=0, tInt=null, tLeft=15, answered=false, order=[];
+
+    function shuffle(a){ return a.slice().sort(function(){ return Math.random()-0.5; }); }
+
+    function goTo(id){
+      var screens = document.querySelectorAll('.screen');
+      for(var i=0;i<screens.length;i++) screens[i].classList.remove('active');
+      document.getElementById(id).classList.add('active');
+    }
+
+    function startQuiz(){
+      cur=0; score=0; wrong=0;
+      order=shuffle([0,1,2,3,4,5,6,7,8,9]);
+      goTo('quiz');
+      loadQ();
+    }
+
+    function loadQ(){
+      answered=false;
+      var q=QS[order[cur]];
+      document.getElementById('qlabel').textContent='Soal '+(cur+1)+' / '+QS.length;
+      document.getElementById('prog').style.width=((cur/QS.length)*100)+'%';
+      document.getElementById('qtext').textContent=q.q;
+      document.getElementById('feedback').textContent='';
+      document.getElementById('feedback').className='feedback';
+      document.getElementById('btn-next').style.display='none';
+
+      var c=document.getElementById('opts');
+      c.innerHTML='';
+      for(var i=0;i<q.opts.length;i++){
+        var b=document.createElement('button');
+        b.className='opt';
+        b.innerHTML='<span class="opt-letter">'+LETTERS[i]+'</span>'+q.opts[i];
+        b.setAttribute('data-idx',i);
+        b.onclick=(function(idx){ return function(){ pick(idx); }; })(i);
+        c.appendChild(b);
+      }
+      startTimer();
+    }
+
+    function startTimer(){
+      clearInterval(tInt);
+      tLeft=15;
+      var el=document.getElementById('timer');
+      el.textContent=tLeft+'s';
+      el.className='timer';
+      tInt=setInterval(function(){
+        tLeft--;
+        el.textContent=tLeft+'s';
+        if(tLeft<=5) el.className='timer urgent';
+        if(tLeft<=0){ clearInterval(tInt); timeOut(); }
+      },1000);
+    }
+
+    function timeOut(){
+      if(answered) return;
+      answered=true; wrong++;
+      var q=QS[order[cur]];
+      disableAll();
+      document.querySelectorAll('.opt')[q.ans].classList.add('reveal');
+      setFB('wrong','Waktu habis! Jawaban benar: '+q.opts[q.ans]+'. '+q.info);
+      showNext();
+    }
+
+    function pick(i){
+      if(answered) return;
+      answered=true;
+      clearInterval(tInt);
+      var q=QS[order[cur]];
+      var btns=document.querySelectorAll('.opt');
+      disableAll();
+      if(i===q.ans){
+        btns[i].classList.add('correct');
+        score++;
+        setFB('correct','Benar! '+q.info);
+      } else {
+        btns[i].classList.add('wrong');
+        btns[q.ans].classList.add('reveal');
+        wrong++;
+        setFB('wrong','Kurang tepat. '+q.info);
+      }
+      showNext();
+    }
+
+    function disableAll(){
+      var btns=document.querySelectorAll('.opt');
+      for(var i=0;i<btns.length;i++) btns[i].disabled=true;
+    }
+
+    function setFB(type,text){
+      var el=document.getElementById('feedback');
+      el.className='feedback '+type;
+      el.textContent=text;
+    }
+
+    function showNext(){
+      var nb=document.getElementById('btn-next');
+      nb.style.display='block';
+      nb.textContent=(cur+1>=QS.length)?'Lihat Hasil \u2192':'Lanjut \u2192';
+    }
+
+    function nextQ(){
+      cur++;
+      if(cur>=QS.length){ showScore(); return; }
+      loadQ();
+    }
+
+    function showScore(){
+      document.getElementById('prog').style.width='100%';
+      goTo('score');
+      var pct=Math.round((score/QS.length)*100);
+      document.getElementById('snum').textContent=score;
+      document.getElementById('sdenom').textContent='dari '+QS.length;
+      document.getElementById('s-benar').textContent=score;
+      document.getElementById('s-salah').textContent=wrong;
+      document.getElementById('s-pct').textContent=pct+'%';
+      var t,s;
+      if(pct===100){ t='Sempurna!'; s='Nilai penuh! Kamu luar biasa.'; }
+      else if(pct>=80){ t='Hebat!'; s='Hampir sempurna, sedikit lagi!'; }
+      else if(pct>=60){ t='Lumayan!'; s='Cukup baik, terus tingkatkan!'; }
+      else if(pct>=40){ t='Belajar lagi!'; s='Jangan menyerah, coba lagi!'; }
+      else { t='Ayo semangat!'; s='Coba lagi dari awal, pasti bisa!'; }
+      document.getElementById('stitle').textContent=t;
+      document.getElementById('ssub').textContent=s;
+    }
+  </script>
+</body>
+</html>
